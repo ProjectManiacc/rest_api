@@ -7,15 +7,14 @@ class PlainItemSchema(Schema):
 
 class PlainStoreSchema(Schema):
     id = fields.Str(dump_only=True)
-    name = fields.Str(required=True)    
+    name = fields.Str()    
 class ItemUpdateSchema(Schema):
     name = fields.Str()
     price = fields.Float()
     
-
 class ItemSchema(PlainItemSchema):
     store_id = fields.Int(required=True, load_only=True)
-    store = fields.Nested(PlainStoreSchema, dump_only=True)
+    store = fields.Nested(PlainStoreSchema(), dump_only=True)
     
 class StoreSchema(PlainStoreSchema):
-    items = fields.Nested(PlainItemSchema, dump_only=True)
+    items = fields.List(fields.Nested(PlainItemSchema()), dump_only=True)
