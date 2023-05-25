@@ -39,6 +39,10 @@ def create_app(db_url=None):
     def revoked_token_callback(jwt_header, jwt_payload):
         return {"message": "The token has been revoked"}
     
+    @jwt.needs_fresh_token_loader
+    def needs_fresh_token_callback(jwt_header, jwt_payload):
+        return {"message": "Fresh token is needed"}
+    
     @jwt.additional_claims_loader
     def add_claims_to_jwt(identity):
         if identity == 1:
