@@ -3,8 +3,8 @@ from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError
 
 from db import db
-from models import StoreModel, TagModel
-from schemas import TagSchema
+from models import StoreModel, TagModel, ItemModel
+from schemas import TagSchema, TagAndItemSchema
 
 blp = Blueprint("Tags", "tags", description="Operations on tags")
 
@@ -29,6 +29,35 @@ class TagsInStore(MethodView):
             
         return tag
     
+@blp.route("/item/<string:item_id>/tag/<string:tag_id>")
+class LinkTagsToItem(MethodView):    
+    @blp.response(200, TagSchema)
+    def post(self, item_id, tag_id):
+        item = ItemModel.query.get_or_404(item_id)
+        tag = TagModel.query.get_or_404(tag_id)
+        item.tags.append(tag)
+        
+        try:
+            db.session.add(item)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            abort(500, message=str(e))
+            
+        return tag
+    
+    @blp.response(200, TagSchema)
+    def delete(self, item_id, tag_id):
+        item = ItemModel.query.get_or_404(item_id)
+        tag = TagModel.query.get_or_404(tag_id)
+        item.tags.remove(tag)
+        
+        try:
+            db.session.add(item)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            abort(500, message=str(e))
+            
+        return {"message": "Tag deleted successfully", "tag": tag, "item": item}
     
 @blp.route("/tag/<tag_id>")
 class Tags(MethodView):
@@ -36,3 +65,16 @@ class Tags(MethodView):
     def get(self, tag_id):
         return TagModel.query.get_or_404(tag_id)
     
+    @blp.response(202, description="Deletes a tag if not item is tagged with it", example= {"message": "Tag deleted successfully"})
+    @blp.alt_response(404, description="Tag not found")
+    @blp.alt_response(400, description="Returned if the tag is assigned to one or more items. In this case, the tag is not deleted")
+    def delete(self,tag_id):
+        tag = TagModel.query.get_or_404(tag_id)
+        if not tag.items:
+            db.session.delete(tag)
+            db.session.commit()
+            return {"message": "Tag deleted successfully"}
+        abort(400, message="Could not delete tag. Make sure tag is not assigned to any items")
+        
+        
+            
