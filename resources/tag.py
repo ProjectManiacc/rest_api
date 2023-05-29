@@ -74,8 +74,7 @@ class LinkTagsToItem(MethodView):
 class Tag(MethodView):
     @blp.response(200, TagSchema)
     def get(self, tag_id):
-        tag = TagModel.query.get_or_404(tag_id)
-        return tag
+        return TagModel.query.get_or_404(tag_id)
 
     @blp.response(
         202,

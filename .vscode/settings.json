@@ -2,6 +2,7 @@
     "cSpell.words": [
         "BLOCKLIST",
         "dotenv",
+        "MAILGUN",
         "passlib",
         "smorest",
         "sqlalchemy"
